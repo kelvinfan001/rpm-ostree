@@ -1,18 +1,38 @@
+# Explicitly create a workspace since we have libdnf-sys as a path
+# dependency, and in the future we may use other sub-crates.
+[workspace]
+
 [package]
 name = "rpmostree-rust"
 version = "0.1.0"
 authors = ["Colin Walters <walters@verbum.org>", "Jonathan Lebon <jonathan@jlebon.com>"]
 edition = "2018"
+# See https://rust-lang.github.io/rfcs/2495-min-rust-version.html
+# Usually, we try to keep this to no newer than current RHEL8 rust-toolset version.
+# You can find the current versions from here:
+# https://access.redhat.com/documentation/en-us/red_hat_developer_tools/1/
+# However, right now we are bumping to 1.48 so we can use https://cxx.rs
+#rust = "1.48"
+links = "rpmostreeinternals"
+
+# This currently needs to duplicate the libraries in configure.ac
+# until we unify on Cargo as our build system
+[package.metadata.system-deps]
+libarchive = "3.0"
+jsonglib = { name = "json-glib-1.0", version = "1" }
+polkitgobject = { name = "polkit-gobject-1", version = "0" }
+rpm = "4"
+libcurl = "7"
 
 [dependencies]
-anyhow = "1.0.35"
+anyhow = "1.0.38"
 paste = "1.0"
-serde = { version = "1.0.118", features = ["derive"] }
+serde = { version = "1.0.123", features = ["derive"] }
 serde_derive = "1.0.118"
-serde_json = "1.0.60"
-serde_yaml = "0.8.14"
-libc = "0.2.81"
-cxx = "1.0.18"
+serde_json = "1.0.61"
+serde_yaml = "0.8.16"
+libc = "0.2.84"
+cxx = "1.0.29"
 nix = "0.19.1"
 glib-sys = "0.10.1"
 glib = "0.10.3"
@@ -20,17 +40,17 @@ gio-sys = "0.10.1"
 gio = "0.9.1"
 ostree = { version = "0.9.1", features = ["v2020_4"] }
 ostree-sys = "0.7.1"
-tempfile = "3.1.0"
+tempfile = "3.2.0"
 clap = "2.33.3"
 structopt = "0.3.21"
 openat = "0.1.19"
-openat-ext = "^0.1.9"
+openat-ext = "^0.1.11"
 curl = "0.4.34"
 rayon = "1.5.0"
 c_utf8 = "0.1.0"
-rand = "0.7.3"
+rand = "0.8.3"
 phf = { version = "0.8", features = ["macros"] }
-systemd = "0.8.1"
+systemd = "0.8.2"
 indicatif = "0.15.0"
 lazy_static = "1.4.0"
 envsubst = "0.2.0"
@@ -38,17 +58,21 @@ subprocess = "0.2.6"
 chrono = { version = "0.4.19", features = ["serde"] }
 libdnf-sys = { path = "rust/libdnf-sys", version = "0.1.0" }
 memfd = "0.3.0"
-rust-ini = "0.16.0"
+rust-ini = "0.16.1"
 os-release = "0.1.0"
 
 [build-dependencies]
 cbindgen = "0.16.0"
+system-deps = "2.0"
 anyhow = "1.0"
 
 [lib]
 name = "rpmostree_rust"
 path = "rust/src/lib.rs"
-crate-type = ["staticlib"]
+
+[[bin]]
+name = "rpm-ostree"
+path = "rust/src/main.rs"
 
 [profile.release]
 # Unwinding across FFI boundaries is undefined behavior, and anyways, we're
